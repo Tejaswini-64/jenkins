@@ -1,29 +1,28 @@
 pipeline { 
-  agent any 
- 
-    stages { 
-        stage ('checkout') { 
-            steps { 
-               echo "Running on branch: ${env.BRANCH_NAME}" 
-            } 
-        } 
+    agent any 
  
         stage ('unit tests') { 
-            steps { 
+            when {branch 'dev'}
+              steps { 
+                dir('javaapp-pipeline') {
                 sh 'mvn clean test' 
             } 
         } 
+}
  
         stage ('build') { 
-            when {branch 'main'} 
+            when {branch 'master'} 
             steps { 
+                dir('javaapp-pipeline') {
                 sh 'mvn clean package' 
             } 
         } 
- 
+ }
+
         stage ('deploy') { 
-            when {branch 'main'} 
+            when {branch 'master'} 
             steps { 
+                dir('javaapp-pipeline') {
                 sh ''' 
                     if pgrep -f "java -jar java-sample-21-1.0.0.jar" > /dev/null; then 
                         pkill -f "java -jar java-sample-21-1.0.0.jar" 
@@ -38,4 +37,5 @@ app.log 2>&1 &
             } 
         } 
     } 
-} 
+}
+}
